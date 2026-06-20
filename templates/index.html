@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Mixed Store{% endblock %}
+
+{% block content %}
+<!-- HERO SECTION -->
+<section class="hero">
+    <h1>Welcome To Mixed Store</h1>
+    <p>Shop Everything In One Place</p>
+    <a href="{{ url_for('products') }}">
+        <button class="shop-btn">Shop Now</button>
+    </a>
+</section>
+
+<!-- FEATURED PRODUCTS (loaded via /api/products) -->
+<section class="products-section">
+    <h2>Featured Products</h2>
+    <div id="productGrid"></div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+async function loadProducts() {
+    const res      = await fetch("/api/products");
+    const products = await res.json();
+    const grid     = document.getElementById("productGrid");
+
+    // Show only first 4 as "featured"
+    products.slice(0, 4).forEach(product => {
+        grid.innerHTML += `
+        <div class="product-card">
+            <img src="{{ url_for('static', filename='') }}${product.image}" alt="${product.name}">
+            <h3>${product.name}</h3>
+            <p>₹${product.price}</p>
+            <button onclick='addToCart(${JSON.stringify(product)})'>Add To Cart</button>
+        </div>`;
+    });
+    updateCartCount();
+}
+
+function addToCart(product) {
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+    cart.push(product);
+    localStorage.setItem("cart", JSON.stringify(cart));
+    updateCartCount();
+    alert(product.name + " Added To Cart");
+}
+
+function updateCartCount() {
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+    const el   = document.getElementById("cartCount");
+    if (el) el.innerText = cart.length;
+}
+
+loadProducts();
+</script>
+{% endblock %}

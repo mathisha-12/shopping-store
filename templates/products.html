@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Products — Mixed Store{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Products</h1>
+<div id="productGrid" class="product-grid"></div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+async function loadProducts() {
+    const res      = await fetch("/api/products");
+    const products = await res.json();
+    const grid     = document.getElementById("productGrid");
+
+    products.forEach(product => {
+        grid.innerHTML += `
+        <div class="product-card">
+            <img src="{{ url_for('static', filename='') }}${product.image}" alt="${product.name}">
+            <h3>${product.name}</h3>
+            <p>₹${product.price}</p>
+            <button onclick='addToCart(${JSON.stringify(product)})'>Add To Cart</button>
+        </div>`;
+    });
+    updateCartCount();
+}
+
+function addToCart(product) {
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+    cart.push(product);
+    localStorage.setItem("cart", JSON.stringify(cart));
+    updateCartCount();
+    alert(product.name + " Added To Cart");
+}
+
+function updateCartCount() {
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+    const el   = document.getElementById("cartCount");
+    if (el) el.innerText = cart.length;
+}
+
+loadProducts();
+</script>
+{% endblock %}

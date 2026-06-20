@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Mixed Store{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+    <div class="logo">Mixed Store</div>
+    <ul>
+        <li><a href="{{ url_for('index') }}">Home</a></li>
+        <li><a href="{{ url_for('products') }}">Products</a></li>
+        <li>
+            <a href="{{ url_for('cart') }}">
+                Cart (<span id="cartCount">0</span>)
+            </a>
+        </li>
+        <li><a href="{{ url_for('contact') }}">Contact</a></li>
+    </ul>
+    <button id="themeBtn">🌙</button>
+</nav>
+
+<!-- PAGE CONTENT -->
+{% block content %}{% endblock %}
+
+<!-- CHAT ICON -->
+<div class="chat-icon" onclick="toggleChat()">💬</div>
+
+<!-- CHAT BOX -->
+<div id="chatBox" class="chat-box">
+    <h3>Support Chat</h3>
+    <div id="messages"></div>
+    <input type="text" id="messageInput" placeholder="Type message...">
+    <button onclick="sendMessage()">Send</button>
+</div>
+
+<!-- SHARED SCRIPTS -->
+<script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+<script src="{{ url_for('static', filename='js/navbar.js') }}"></script>
+
+<!-- Chat: now calls Flask /api/chat -->
+<script>
+function toggleChat() {
+    const chatBox = document.getElementById("chatBox");
+    chatBox.style.display = chatBox.style.display === "block" ? "none" : "block";
+}
+
+async function sendMessage() {
+    const input    = document.getElementById("messageInput");
+    const messages = document.getElementById("messages");
+    const text     = input.value.trim();
+    if (!text) return;
+
+    messages.innerHTML += `<p><strong>You:</strong> ${text}</p>`;
+    input.value = "";
+
+    try {
+        const res  = await fetch("/api/chat", {
+            method:  "POST",
+            headers: { "Content-Type": "application/json" },
+            body:    JSON.stringify({ message: text }),
+        });
+        const data = await res.json();
+        if (data.reply) {
+            messages.innerHTML += `<p><strong>Support:</strong> ${data.reply}</p>`;
+        }
+    } catch {
+        messages.innerHTML += `<p><em>Could not reach support right now.</em></p>`;
+    }
+}
+</script>
+
+{% block extra_scripts %}{% endblock %}
+
+</body>
+</html>

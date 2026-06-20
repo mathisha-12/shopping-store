@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Contact Us — Mixed Store{% endblock %}
+
+{% block content %}
+<div class="contact-container">
+    <h1>Contact Us</h1>
+    <input  type="text"  id="name"        placeholder="Your Name">
+    <input  type="email" id="email"       placeholder="Your Email">
+    <textarea            id="userMessage" placeholder="Your Message"></textarea>
+    <button onclick="sendContact()">Send Message</button>
+    <p id="successMsg"></p>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+async function sendContact() {
+    const name    = document.getElementById("name").value.trim();
+    const email   = document.getElementById("email").value.trim();
+    const message = document.getElementById("userMessage").value.trim();
+    const msgEl   = document.getElementById("successMsg");
+
+    if (!name || !email || !message) { alert("Please fill all fields"); return; }
+
+    try {
+        const res  = await fetch("/api/contact", {
+            method:  "POST",
+            headers: { "Content-Type": "application/json" },
+            body:    JSON.stringify({ name, email, message }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            msgEl.innerHTML = "✅ Message Sent Successfully!";
+            document.getElementById("name").value        = "";
+            document.getElementById("email").value       = "";
+            document.getElementById("userMessage").value = "";
+            setTimeout(() => { msgEl.innerHTML = ""; }, 3000);
+        } else {
+            msgEl.innerHTML = "❌ " + (data.error || "Something went wrong.");
+        }
+    } catch {
+        msgEl.innerHTML = "❌ Could not reach server. Try again later.";
+    }
+}
+</script>
+{% endblock %}
